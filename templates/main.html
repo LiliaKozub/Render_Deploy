@@ -1,0 +1,217 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="uk">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <meta http-equiv="X-UA-Compatible" content="ie=edge">-->
+<!--    <title>Головна сторінка - Веб-сервіс для перевірки SQL-запитів</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--</head>-->
+<!--<body>-->
+<!--    &lt;!&ndash; Іконка для бокової панелі &ndash;&gt;-->
+<!--    <div class="sidebar-icon" onclick="toggleSidebar()">-->
+<!--        &#9776; &lt;!&ndash; Символ гамбургер-меню &ndash;&gt;-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Бокова панель (сайдбар) &ndash;&gt;-->
+<!--    <div class="sidebar">-->
+<!--        <h2 style="color: white; font-size: 24px;">Меню</h2>-->
+<!--        <a href="{{ url_for('main') }}">Головна сторінка</a>  &lt;!&ndash; Посилання на головну сторінку &ndash;&gt;-->
+<!--        <a href="{{ url_for('index') }}">Перевірка SQL запиту</a>-->
+<!--        <a href="#">Крок 2: Введення таблиць</a>-->
+<!--        <a href="#">Крок 3: Перевірка запиту</a>-->
+<!--        <a href="#">Почати заново</a>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Основна частина сторінки &ndash;&gt;-->
+<!--    <div class="container">-->
+<!--        <header>-->
+<!--            <h1>Веб-сервіс для перевірки SQL-запитів</h1>-->
+<!--        </header>-->
+
+<!--        <section class="intro">-->
+<!--            <p>-->
+<!--                Ласкаво просимо до нашого веб-сервісу для перевірки SQL-запитів! Цей сервіс допоможе вам перевірити синтаксис SQL-запитів та переконатися в їхній коректності перед виконанням у вашій базі даних.-->
+<!--            </p>-->
+<!--            <p>-->
+<!--                З допомогою нашого веб-сервісу ви зможете перевіряти ваші SQL-запити крок за кроком, а також отримати детальну інформацію про будь-які помилки, що можуть виникнути.-->
+<!--            </p>-->
+<!--        </section>-->
+
+<!--        <section class="selection">-->
+<!--            <h2>Оберіть, як хочете почати перевірку запиту:</h2>-->
+<!--            <div class="btn-container">-->
+<!--                &lt;!&ndash; Кнопки для вибору способу перевірки &ndash;&gt;-->
+<!--                <a href="{{ url_for('main') }}" class="btn">Без авторизації</a>-->
+<!--                <a href="{{ url_for('login') }}" class="btn">З авторизацією</a>-->
+<!--            </div>-->
+<!--        </section>-->
+
+<!--        <footer>-->
+<!--            <p>&copy; 2024 Веб-сервіс для перевірки SQL-запитів. Усі права захищені.</p>-->
+<!--        </footer>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Підключення JavaScript файлу &ndash;&gt;-->
+<!--    <script src="{{ url_for('static', filename='js/script.js') }}"></script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перевірка SQL Запиту</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Іконка меню -->
+    <div class="menu-icon">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="expanded-menu">
+    <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
+        <i class="fa fa-home"></i>
+    </a>
+    <a href="{{ url_for('instructions') }}" class="menu-item" data-tooltip="Інструкції">
+        <i class="fa fa-book"></i>
+    </a>
+    <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
+        <i class="fa fa-database"></i>
+    </a>
+    {% if 'user_id' in session %}
+    <a href="{{ url_for('query_history') }}" class="menu-item" data-tooltip="Історія">
+        <i class="fa fa-history"></i>
+    </a>
+    <a href="{{ url_for('account_settings') }}" class="menu-item" data-tooltip="Особистий кабінет">
+        <i class="fa fa-user"></i>
+    </a>
+    {% endif %}
+</div>
+
+
+    <div class="container">
+        <h1 class="main-title">Перевірка SQL Запиту</h1>
+
+    <div id="step1" class="step-section">
+        <h2 class="step-title">Крок 1: Вибір способу введення даних</h2>
+
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="inputMethod" value="file" id="fileOption">
+                <span class="radio-label">Завантажити дані з файлу</span>
+            </label>
+            <label>
+                <input type="radio" name="inputMethod" value="manual" id="manualOption">
+                <span class="radio-label">Ввести дані вручну</span>
+            </label>
+        </div>
+
+        <!-- Крок 1: Завантажити файл JSON з даними таблиць -->
+        <div id="uploadStep" class="step-content" style="display: block;">
+            <h3>Завантажити файл JSON з даними таблиць</h3>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <label for="fileInput" class="file-label">
+        <i class="fa fa-upload"></i> Оберіть файл
+    </label>
+                <input type="file" id="fileInput" accept=".json" style="display: none;" required>
+    <span id="fileName">Файл не вибрано</span>
+                <button type="submit" class="primary-button">Завантажити файл</button>
+            </form>
+        </div>
+
+        <!-- Крок 1: Ввести таблиці вручну -->
+        <div id="manualStep" class="step-content" style="display: none;">
+            <h3>Введіть кількість таблиць</h3>
+            <form id="tableCountForm">
+                <input type="number" id="tableCount" class="input-field" placeholder="Кількість таблиць" min="1" required>
+                <button type="submit" class="primary-button">Далі</button>
+            </form>
+        </div>
+    </div>
+
+        <!-- Крок 2: Введення інформації про таблиці -->
+        <div id="step2" style="display: none;">
+            <h2>Крок 2: Введіть назви таблиць та їх стовпці</h2>
+            <form id="tableDetailsForm"></form>
+            <button type="button" id="createTablesBtn">Створити таблиці</button>
+            <button type="button" id="backToStep1">Назад</button>
+        </div>
+
+        <!-- Крок 3: Перевірка SQL-запитів -->
+<div id="step3" style="display: none;">
+    <h2 class="step-title">Крок 3: Введіть SQL-запит</h2>
+
+    <form id="sqlForm" class="form-container">
+        <textarea name="sql_query" class="textarea" placeholder="Введіть ваш SQL-запит..." required></textarea>
+        <div class="button-group">
+            <button type="submit" class="primary-button">Перевірити</button>
+            <button type="button" id="resetQueryBtn" class="secondary-button">Скинути запит</button>
+            <button type="button" id="backToStep2" class="secondary-button">Назад</button>
+            <button type="button" id="resetAppBtn" class="secondary-button">Почати заново</button>
+            <button type="button" id="optimizationTipsBtn" class="secondary-button">Отримати підказки щодо оптимізації</button>
+            <a href="{{ url_for('visualize_db') }}" class="secondary-button">Візуалізувати структуру БД</a>
+        </div>
+    </form>
+
+    <!-- Блок для результатів -->
+    <div id="result" class="result-container"></div>
+
+    <!-- Блок для підказок -->
+    <div id="optimizationTips" class="optimization-tips-container" style="display: none;"></div>
+</div>
+    </div>
+
+<!-- Підключення JavaScript файлу -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- jQuery та DataTables.js -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script>
+        const menuIcon = document.querySelector('.menu-icon');
+const expandedMenu = document.querySelector('.expanded-menu');
+
+// Показуємо меню при наведенні
+menuIcon.addEventListener('mouseenter', () => {
+    expandedMenu.classList.add('show');
+});
+
+// Ховаємо меню при виході мишки
+expandedMenu.addEventListener('mouseleave', () => {
+    expandedMenu.classList.remove('show');
+});
+
+document.querySelectorAll('input[name="inputMethod"]').forEach((radio) => {
+    radio.addEventListener('change', (e) => {
+        const uploadStep = document.getElementById('uploadStep');
+        const manualStep = document.getElementById('manualStep');
+
+        if (e.target.value === 'file') {
+            uploadStep.classList.add('active');
+            manualStep.classList.remove('active');
+        } else {
+            uploadStep.classList.remove('active');
+            manualStep.classList.add('active');
+        }
+    });
+});
+
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+
+fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+        fileName.textContent = fileInput.files[0].name;
+    } else {
+        fileName.textContent = "Файл не вибрано";
+    }
+});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Візуалізація структури бази даних</title>
+    <svg id="svg-connections" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;"></svg>
+
+<style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #2E2E2E;
+            color: #E0E0E0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin: 20px 0;
+            color: #E0E0E0;
+        }
+
+        #tables-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 50px;
+            position: relative;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .table-container {
+            width: auto;
+            max-width: 300px;
+            position: absolute;
+            font-size: 12px;
+            border: 2px solid #444;
+            background-color: #333;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            cursor: move;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .table-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 6px;
+            font-size: 13px;
+            border: 1px solid #555;
+            text-align: left;
+            color: #E0E0E0;
+        }
+
+        th {
+            background-color: #444;
+            font-weight: bold;
+        }
+
+        h2.table-title {
+            font-size: 14px;
+            margin: 5px 0;
+            text-align: center;
+            color: #E0E0E0;
+        }
+
+        .icons {
+            display: inline-block;
+            width: 3em;
+            text-align: center;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 140px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -70px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .line-connection {
+            position: absolute;
+            height: 2px;
+            background-color: #FF6F61;
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: drawLine 0.5s ease-out forwards;
+        }
+
+        .arrow {
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-left: 10px solid #FF6F61;
+            position: absolute;
+        }
+
+        svg {
+            pointer-events: none;
+        }
+
+        path {
+            stroke: #FF6F61;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .back-button {
+            background-color: #444;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #666;
+        }
+
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.history.back()">Повернутися до перевірки запитів</button>
+
+    <h1>Структура бази даних</h1>
+
+    <div id="tables-container">
+    {% for table_name, table_data in db_structure.items() %}
+    <div class="table-container" id="table-{{ table_name }}">
+        <h2 class="table-title">{{ table_name }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ім'я стовпця</th>
+                    <th>Тип даних</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for column in table_data.columns %}
+                <tr id="column-{{ table_name }}-{{ column.name }}">
+                    <td>
+                        <span class="icons">
+                            {% if column.pk %}
+                            <span class="tooltip">
+                                🔑
+                                <span class="tooltiptext">Первинний ключ</span>
+                            </span>
+                            {% endif %}
+                            {% if column.not_null %}
+                            <span class="tooltip">
+                                ✔️
+                                <span class="tooltiptext">NOT NULL</span>
+                            </span>
+                            {% endif %}
+                            {% if column.uniqueKey %}
+                            <span class="tooltip">
+                                🌟
+                                <span class="tooltiptext">Унікальний ключ</span>
+                            </span>
+                            {% endif %}
+                            {% for fk in table_data.foreign_keys %}
+                            {% if fk.from_column == column.name %}
+                            <span class="tooltip">
+                                🔗
+                                <span class="tooltiptext">
+                                    Зовнішній ключ → {{ fk.to_table }}.{{ fk.to_column }}
+                                </span>
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span>{{ column.name }}</span>
+                    </td>
+                    <td>{{ column.type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+
+    <script>
+function drawCurvedLine(sourceElement, targetElement) {
+        const svg = document.getElementById("svg-connections");
+
+        const sourceRect = sourceElement.getBoundingClientRect();
+        const targetRect = targetElement.getBoundingClientRect();
+
+        const startX = sourceRect.right + window.scrollX; // Права сторона вихідного елемента
+        const startY = sourceRect.top + sourceRect.height / 2 + window.scrollY;
+        const endX = targetRect.left + window.scrollX; // Ліва сторона цільового елемента
+        const endY = targetRect.top + targetRect.height / 2 + window.scrollY;
+
+        // Крива Безьє
+        const controlX1 = startX + (endX - startX) / 2;
+        const controlY1 = startY;
+        const controlX2 = controlX1;
+        const controlY2 = endY;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute(
+            "d",
+            `M ${startX},${startY} C ${controlX1},${controlY1} ${controlX2},${controlY2} ${endX},${endY}`
+        );
+        path.setAttribute("stroke", "#FF6F61");
+        path.setAttribute("stroke-width", "2");
+        path.setAttribute("fill", "none");
+        path.setAttribute("marker-end", "url(#arrowhead)");
+
+        svg.appendChild(path);
+    }
+
+    function addArrowMarker() {
+        const svg = document.getElementById("svg-connections");
+        let defs = svg.querySelector("defs");
+
+        if (!defs) {
+            defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            svg.appendChild(defs);
+        }
+
+        // Видаляємо старий маркер, якщо він існує
+        const existingMarker = document.getElementById("arrowhead");
+        if (existingMarker) existingMarker.remove();
+
+        // Створюємо новий маркер
+        const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("viewBox", "0 0 10 10");
+        marker.setAttribute("refX", "10"); // Позиція стрілки
+        marker.setAttribute("refY", "5");
+        marker.setAttribute("markerWidth", "6");
+        marker.setAttribute("markerHeight", "6");
+        marker.setAttribute("orient", "auto");
+
+        const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrowPath.setAttribute("d", "M 0 0 L 10 5 L 0 10 Z"); // Стрілка у вигляді трикутника
+        arrowPath.setAttribute("fill", "#FF6F61"); // Колір стрілки
+
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+    }
+
+    function drawAllLines() {
+        const svg = document.getElementById("svg-connections");
+        svg.innerHTML = ""; // Очищуємо SVG перед оновленням
+
+        const tables = document.querySelectorAll(".table-container");
+        tables.forEach((table) => {
+            const tableId = table.id.split("-")[1];
+            const columns = table.querySelectorAll("tr");
+
+            columns.forEach((column) => {
+                const columnId = column.id.split("-")[2];
+
+                const foreignKey = getForeignKeyForColumn(tableId, columnId);
+                if (foreignKey) {
+                    const [refTable, refColumn] = foreignKey.split(".");
+                    const refColumnElement = document.getElementById(`column-${refTable}-${refColumn}`);
+                    if (refColumnElement) {
+                        drawCurvedLine(column, refColumnElement);
+                    } else {
+                        console.error(`Target element for ${refTable}.${refColumn} not found.`);
+                    }
+                }
+            });
+        });
+    }
+
+    function getForeignKeyForColumn(tableName, columnName) {
+        const foreignKeys = {{ db_structure | tojson }};
+        const keys = foreignKeys[tableName]?.foreign_keys || [];
+        for (let fk of keys) {
+            if (fk.from_column === columnName) {
+                return `${fk.to_table}.${fk.to_column}`;
+            }
+        }
+        return null;
+    }
+
+    window.onload = function () {
+        addArrowMarker(); // Додаємо стрілки
+        const tables = document.querySelectorAll(".table-container");
+        tables.forEach((table) => makeDraggable(table));
+        drawAllLines(); // Малюємо всі лінії
+    };
+
+    let isDragging = false;
+    let activeTable = null;
+    let offsetX, offsetY;
+
+    function makeDraggable(table) {
+        table.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            activeTable = table;
+            offsetX = e.clientX - table.offsetLeft;
+            offsetY = e.clientY - table.offsetTop;
+        });
+    }
+
+    document.addEventListener("mousemove", (e) => {
+        if (isDragging && activeTable) {
+            activeTable.style.left = `${e.clientX - offsetX}px`;
+            activeTable.style.top = `${e.clientY - offsetY}px`;
+            drawAllLines();
+        }
+    });
+
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+        activeTable = null;
+    });
+    </script>
+</body>
+</html>

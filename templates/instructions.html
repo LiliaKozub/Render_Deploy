@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інструкції</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .json-example {
+        background-color: #2c2c2c; /* Темний фон */
+        color: #e0e0e0; /* Світлий текст */
+        padding: 15px;
+        border-radius: 5px;
+        font-family: monospace;
+        overflow-x: auto;
+        max-width: 600px; /* Менша ширина */
+        max-height: 200px; /* Менша висота */
+        margin: 10px 0;
+        font-size: 12px; /* Менший шрифт */
+    }
+
+    .json-key {
+        color: #ffcc00; /* Жовтий для ключів */
+    }
+
+    .json-string {
+        color: #00ff00; /* Зелений для рядків */
+    }
+
+    .json-object {
+        color: #00b0ff; /* Синій для об'єктів */
+    }
+
+    .json-array {
+        color: #ff80ff; /* Рожевий для масивів */
+    }
+    </style>
+    <script>
+        const menuIcon = document.querySelector('.menu-icon');
+const expandedMenu = document.querySelector('.expanded-menu');
+
+// Показуємо меню при наведенні
+menuIcon.addEventListener('mouseenter', () => {
+    expandedMenu.classList.add('show');
+});
+
+// Ховаємо меню при виході мишки
+expandedMenu.addEventListener('mouseleave', () => {
+    expandedMenu.classList.remove('show');
+});
+    </script>
+</head>
+<body>
+<!-- Іконка меню -->
+    <div class="menu-icon">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="expanded-menu">
+    <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
+        <i class="fa fa-home"></i>
+    </a>
+    <a href="{{ url_for('instructions') }}" class="menu-item" data-tooltip="Інструкції">
+        <i class="fa fa-book"></i>
+    </a>
+    <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
+        <i class="fa fa-database"></i>
+    </a>
+    {% if 'user_id' in session %}
+    <a href="{{ url_for('query_history') }}" class="menu-item" data-tooltip="Історія">
+        <i class="fa fa-history"></i>
+    </a>
+    <a href="{{ url_for('account_settings') }}" class="menu-item" data-tooltip="Особистий кабінет">
+        <i class="fa fa-user"></i>
+    </a>
+    {% endif %}
+</div>
+<div class="container">
+    <h1>Інструкції з використання додатку</h1>
+
+    <div class="instruction-step" style="color: #fff;">
+        <button class="toggle-btn" onclick="toggleDetails('step1')">
+            Крок 1: Вибір способу введення даних
+            <span class="arrow">▼</span>
+        </button>
+        <div class="step-details" id="step1" style="color: #fff;">
+            <p><strong>Опис:</strong> На цьому кроці ви обираєте спосіб введення даних для подальшої перевірки SQL-запиту. Є два основні варіанти:</p>
+            <ul>
+                <li><strong>Завантажити дані з файлу JSON:</strong> Якщо ви маєте файл JSON, який містить інформацію про таблиці та стовпці, виберіть цей варіант для автоматичного завантаження даних.</li>
+                <li><strong>Ввести дані вручну:</strong> Якщо у вас немає файлу JSON або ви хочете ввести інформацію про таблиці вручну, виберіть цей варіант.</li>
+            </ul>
+
+            <p><strong>Приклад файлу JSON:</strong></p>
+            <div class="json-example">
+                <pre>
+<span class="json-key">[</span>
+    <span class="json-object">
+        {
+            <span class="json-key">"name"</span>: <span class="json-string">"roles"</span>,
+            <span class="json-key">"columns"</span>: [
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"role_name"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"TEXT"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>,
+                    <span class="json-key">"uniqueKey"</span>: <span class="json-string">true</span>
+                }
+            ]
+        },
+    </span>
+    <span class="json-object">
+        {
+            <span class="json-key">"name"</span>: <span class="json-string">"permissions"</span>,
+            <span class="json-key">"columns"</span>: [
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"permission_name"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"TEXT"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>,
+                    <span class="json-key">"uniqueKey"</span>: <span class="json-string">true</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"role_id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">"roles(id)"</span>
+                }
+            ]
+        },
+    </span>
+    <span class="json-object">
+        {
+            <span class="json-key">"name"</span>: <span class="json-string">"users"</span>,
+            <span class="json-key">"columns"</span>: [
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"username"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"TEXT"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>,
+                    <span class="json-key">"uniqueKey"</span>: <span class="json-string">true</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"role_id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">"roles(id)"</span>
+                }
+            ]
+        },
+    </span>
+    <span class="json-object">
+        {
+            <span class="json-key">"name"</span>: <span class="json-string">"user_permissions"</span>,
+            <span class="json-key">"columns"</span>: [
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"user_id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">"users(id)"</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"permission_id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">"permissions(id)"</span>
+                }
+            ]
+        },
+    </span>
+    <span class="json-object">
+        {
+            <span class="json-key">"name"</span>: <span class="json-string">"audit_logs"</span>,
+            <span class="json-key">"columns"</span>: [
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"user_id"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"INTEGER"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">"users(id)"</span>
+                },
+                {
+                    <span class="json-key">"name"</span>: <span class="json-string">"action"</span>,
+                    <span class="json-key">"type"</span>: <span class="json-string">"TEXT"</span>,
+                    <span class="json-key">"primaryKey"</span>: <span class="json-string">false</span>,
+                    <span class="json-key">"notNull"</span>: <span class="json-string">true</span>,
+                    <span class="json-key">"foreignKey"</span>: <span class="json-string">""</span>
+                }
+            ]
+        },
+    </span>
+    <span class="json-key">]</span>
+                </pre>
+            </div>
+            <p>У даному прикладі зазначено кілька таблиць, кожна з яких має стовпці з типами даних, а також ключі (первинні, зовнішні, унікальні, ненульові). Ви можете редагувати ці дані згідно з вашими потребами.</p>
+        </div>
+    </div>
+
+    <!-- Крок 2: Введення даних вручну -->
+    <div class="instruction-step">
+        <button class="toggle-btn" onclick="toggleDetails('step2')">
+            Крок 2: Введення даних вручну
+            <span class="arrow">▼</span>
+        </button>
+        <div class="step-details" id="step2">
+            <h2>Крок 2: Введення даних вручну</h2>
+            <p>На цьому кроці ви можете вручну ввести структуру таблиць, які потрібно перевірити в SQL-запитах. Якщо ви завантажили дані з файлу, то на цьому кроці за бажанням ви можете внести потрібні зміни.</p>
+        </div>
+    </div>
+
+    <!-- Крок 3: Перевірка SQL-запитів -->
+    <div class="instruction-step">
+        <button class="toggle-btn" onclick="toggleDetails('step3')">
+            Крок 3: Перевірка SQL-запитів
+            <span class="arrow">▼</span>
+        </button>
+        <div class="step-details" id="step3">
+            <h2>Крок 3: Перевірка SQL-запитів</h2>
+            <p>Після того, як ви введете або завантажите дані, ви можете перевірити SQL-запит. Для цього просто введіть ваш запит у відповідне поле і натисніть "Перевірити". Система перевірить коректність запиту та надасть результат.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDetails(stepId) {
+        const step = document.getElementById(stepId);
+        const arrow = step.previousElementSibling.querySelector('.arrow');
+        if (step.style.display === 'none') {
+            step.style.display = 'block';
+            arrow.textContent = '▲';
+        } else {
+            step.style.display = 'none';
+            arrow.textContent = '▼';
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Авторизація</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+    background-color: #202124;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #2b2f33;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    width: 400px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #f4e04d;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.form-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group label {
+    font-size: 16px;
+    margin-bottom: 5px;
+    text-align: left;
+    display: block;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #333;
+    color: #fff;
+    transition: border 0.3s ease;
+}
+
+.form-group input:focus {
+    border: 1px solid #34c759;
+    outline: none;
+}
+
+.btn-submit {
+    background: linear-gradient(90deg, #34c759, #28a745);
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-submit:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #28a745, #20a345);
+}
+
+.link {
+    color: #f4e04d;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.messages {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #ff4d4d;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #34c759;
+}
+
+.alert-error {
+    background-color: #ff4d4d;
+}
+
+.messages {
+    margin: 15px auto;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    font-size: 14px;
+    font-weight: bold;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.alert-success {
+    background-color: #28a745;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.alert-error {
+    background-color: #dc3545;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-auth {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-auth button {
+    margin-top: 20px;
+}
+
+.link {
+    color: #ffc107;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+    </style>
+    <script>
+        // Функція для приховування повідомлення про помилку при зміні поля
+        function clearErrorMessages() {
+            const messages = document.querySelectorAll('.messages');
+            messages.forEach(function(message) {
+                message.style.display = 'none'; // Сховати повідомлення
+            });
+        }
+
+        // Додати обробники подій для полів форми
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameField = document.getElementById('username');
+            const passwordField = document.getElementById('password');
+
+            usernameField.addEventListener('input', clearErrorMessages);
+            passwordField.addEventListener('input', clearErrorMessages);
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Вхід до веб-сервісу для перевірки SQL-запитів</h1>
+        </header>
+
+        <main>
+            <form action="{{ url_for('login') }}" method="POST" class="form-auth">
+                <div class="form-group">
+                    <label for="username">Логін:</label>
+                    <input type="text" id="username" name="username" placeholder="Введіть ваш логін" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" placeholder="Введіть ваш пароль" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Увійти</button>
+            </form>
+
+            <p>Ще не маєте акаунта?
+                <a href="{{ url_for('register') }}" class="link">Зареєструватись</a>
+            </p>
+
+            <!-- Посилання для повернення на головну сторінку -->
+            <p>
+                <a href="{{ url_for('index') }}" class="link">Повернутися на головну сторінку</a>
+            </p>
+
+            <!-- Відображення повідомлень -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="messages">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+        </main>
+    </div>
+</body>
+</html>

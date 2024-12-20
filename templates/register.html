@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Реєстрація</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+    background-color: #202124;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #2b2f33;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    width: 400px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #f4e04d;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.form-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group label {
+    font-size: 16px;
+    margin-bottom: 5px;
+    text-align: left;
+    display: block;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background: #333;
+    color: #fff;
+    transition: border 0.3s ease;
+}
+
+.form-group input:focus {
+    border: 1px solid #34c759;
+    outline: none;
+}
+
+.btn-submit {
+    background: linear-gradient(90deg, #34c759, #28a745);
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-submit:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #28a745, #20a345);
+}
+
+.link {
+    color: #f4e04d;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.messages {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #ff4d4d;
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #34c759;
+}
+
+.alert-error {
+    background-color: #ff4d4d;
+}
+
+.messages {
+    margin: 15px auto;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    font-size: 14px;
+    font-weight: bold;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.alert-success {
+    background-color: #28a745;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.alert-error {
+    background-color: #dc3545;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-auth {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-auth button {
+    margin-top: 20px;
+}
+
+.link {
+    color: #ffc107;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Реєстрація у веб-сервісі для перевірки SQL-запитів</h1>
+        </header>
+
+        <main>
+            <form action="{{ url_for('register') }}" method="POST" class="form-auth">
+                <div class="form-group">
+                    <label for="username">Логін:</label>
+                    <input type="text" id="username" name="username" placeholder="Введіть ваш логін" value="{{ username or '' }}" required>
+                    <span id="username-error" style="color: red; display: none;">Логін вже існує</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" placeholder="Введіть ваш пароль" value="{{ password or '' }}" required>
+                    <span id="password-error" style="color: red; display: none;">Пароль має бути не менше 8 символів, містити великі літери та цифри</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Підтвердження пароля:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Підтвердьте ваш пароль" value="{{ confirm_password or '' }}" required>
+                    <span id="confirm-password-error" style="color: red; display: none;">Паролі не співпадають</span>
+                </div>
+
+                <button type="submit" class="btn-submit">Зареєструватися</button>
+            </form>
+
+            <p>Вже маєте акаунт?
+                <a href="{{ url_for('login') }}" class="link">Увійти</a>
+            </p>
+
+            <!-- Відображення повідомлень -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="messages">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+        </main>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+    // Перевірка логіна в реальному часі
+    $('#username').on('input', function() {
+        var username = $(this).val();
+
+        if (username.length >= 3) {  // Перевірка лише після введення 3 символів
+            $.get('{{ url_for("check_username") }}', { username: username }, function(response) {
+                if (response.exists) {
+                    $('#username-error').show();  // Показати помилку, якщо логін існує
+                } else {
+                    $('#username-error').hide();  // Сховати помилку, якщо логін доступний
+                }
+            });
+        } else {
+            $('#username-error').hide();  // Сховати помилку, якщо логін занадто короткий
+        }
+    });
+
+    // Перевірка пароля на складність в реальному часі
+    $('#password').on('input', function() {
+        var password = $(this).val();
+
+        // Відправляємо запит на сервер для перевірки пароля
+        $.get('{{ url_for("check_password") }}', { password: password }, function(response) {
+            if (!response.valid) {
+                $('#password-error').show();  // Показати помилку, якщо пароль не відповідає вимогам
+            } else {
+                $('#password-error').hide();  // Сховати помилку, якщо пароль відповідає вимогам
+            }
+        });
+    });
+
+    // Перевірка на співпадіння паролів в реальному часі
+    $('#confirm_password').on('input', function() {
+        var password = $('#password').val();
+        var confirmPassword = $(this).val();
+
+        if (password !== confirmPassword) {
+            $('#confirm-password-error').show();  // Показати помилку, якщо паролі не співпадають
+        } else {
+            $('#confirm-password-error').hide();  // Сховати помилку, якщо паролі співпадають
+        }
+    });
+
+    // Сховати помилки при введенні тексту в поля
+    $('#username, #password, #confirm_password').on('input', function() {
+        // При кожному введенні зникає помилка
+        $('.messages').hide();
+        $('#username-error').hide();
+        $('#password-error').hide();
+        $('#confirm-password-error').hide();
+    });
+});
+    </script>
+</body>
+</html>

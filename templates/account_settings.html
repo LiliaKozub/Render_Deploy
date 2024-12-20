@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Особистий кабінет</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleForm(formId) {
+            const forms = document.querySelectorAll('.form-section');
+            forms.forEach(form => form.style.display = 'none'); // Приховати всі форми
+            const selectedForm = document.getElementById(formId);
+            selectedForm.style.display = 'block'; // Показати вибрану форму
+        }
+
+        // Функція для очищення повідомлень про помилки
+        function clearErrorMessages() {
+            const errorMessages = document.querySelectorAll('.error');
+            errorMessages.forEach(error => {
+                error.style.display = 'none';
+            });
+        }
+
+        // Показувати форми автоматично на основі помилок
+        window.onload = function () {
+        // Показувати форми автоматично на основі помилок
+        {% if form_errors.get('username') %}
+            document.getElementById('usernameForm').style.display = 'block';
+        {% elif form_errors.get('password') %}
+            document.getElementById('passwordForm').style.display = 'block';
+        {% endif %}
+
+        // Дані для діаграми
+        const successfulQueries = {{ stats['successful_queries'] }};
+        const failedQueries = {{ stats['failed_queries'] }};
+
+        // Побудова діаграми
+        {% if successfulQueries == 0 and failedQueries == 0 %}
+        <p id="no-stats-message">Статистика запитів недоступна.</p>
+{% else %}
+        const ctx = document.getElementById('queryStatsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Успішні запити', 'Неуспішні запити'],
+                datasets: [{
+                    data: [successfulQueries, failedQueries],
+                    backgroundColor: ['#4CAF50', '#FF5252'],
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+            },
+        });
+        {% endif %}
+    };
+
+    const menuIcon = document.querySelector('.menu-icon');
+const expandedMenu = document.querySelector('.expanded-menu');
+
+// Показуємо меню при наведенні
+menuIcon.addEventListener('mouseenter', () => {
+    expandedMenu.classList.add('show');
+});
+
+// Ховаємо меню при виході мишки
+expandedMenu.addEventListener('mouseleave', () => {
+    expandedMenu.classList.remove('show');
+});
+
+    </script>
+    <style>
+       /* Загальні стилі */
+.container {
+    max-width: 700px; /* Зменшений розмір контейнера */
+    margin: 30px auto;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #ffcc00;
+    margin-bottom: 20px;
+}
+
+/* Кнопки */
+button.btn, a.btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin: 10px 5px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+button.btn:hover, a.btn:hover {
+    background-color: #45a049;
+}
+
+/* Форма */
+.form-section {
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+}
+
+input {
+    width: calc(30% - 20px);
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #44475a;
+    color: #eaeaea;
+}
+
+input:focus {
+    outline: none;
+    background-color: #55576a;
+}
+
+/* Помилки */
+.error {
+    color: #ff5252;
+    font-size: 0.9rem;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+/* Статистика */
+.stats {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.stats h2 {
+    font-size: 1.5rem; /* Зменшений розмір заголовка статистики */
+    margin-bottom: 10px;
+}
+
+/* Зменшення розміру діаграми */
+canvas {
+    max-width: 50%; /* Зменшений розмір діаграми */
+    height: auto;
+    margin: 0 auto;
+    display: block; /* Центрування */
+    border-radius: 10px;
+}
+
+    </style>
+</head>
+<body>
+<!-- Іконка меню -->
+    <div class="menu-icon">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="expanded-menu">
+    <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
+        <i class="fa fa-home"></i>
+    </a>
+    <a href="#" class="menu-item" data-tooltip="Інструкції">
+        <i class="fa fa-book"></i>
+    </a>
+    <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
+        <i class="fa fa-database"></i>
+    </a>
+    {% if 'user_id' in session %}
+    <a href="{{ url_for('query_history') }}" class="menu-item" data-tooltip="Історія">
+        <i class="fa fa-history"></i>
+    </a>
+    <a href="{{ url_for('account_settings') }}" class="menu-item" data-tooltip="Особистий кабінет">
+        <i class="fa fa-user"></i>
+    </a>
+    {% endif %}
+</div>
+
+    <div class="container">
+        <h1>Особистий кабінет</h1>
+        <p><strong>Логін:</strong> {{ user_info['username'] }}</p>
+
+        <!-- Кнопки для зміни логіна та пароля -->
+        <button onclick="toggleForm('usernameForm')" class="btn">Змінити логін</button>
+        <button onclick="toggleForm('passwordForm')" class="btn">Змінити пароль</button>
+        <a href="{{ url_for('logout') }}" class="btn">Вийти з акаунта</a>
+
+        <!-- Форма зміни логіна -->
+        <form id="usernameForm" class="form-section" method="POST" action="{{ url_for('change_username') }}" style="display: none;">
+            <h3>Змінити логін</h3>
+            <label for="new_username">Новий логін:</label>
+            <input type="text" name="new_username" id="new_username" required value="{{ request.form.get('new_username', '') }}" oninput="clearErrorMessages()">
+            {% if form_errors.get('username') %}
+                <p class="error">{{ form_errors['username'] }}</p>
+            {% endif %}
+            <button type="submit" class="btn">Зберегти</button>
+        </form>
+
+        <!-- Форма зміни пароля -->
+<form id="passwordForm" class="form-section" method="POST" action="{{ url_for('change_password') }}" style="display: none;">
+    <h3>Змінити пароль</h3>
+    <label for="current_password">Поточний пароль:</label>
+    <input type="password" name="current_password" id="current_password" required oninput="clearErrorMessages()">
+
+    <label for="new_password">Новий пароль:</label>
+    <input type="password" name="new_password" id="new_password" required oninput="clearErrorMessages()">
+
+    <label for="confirm_password">Підтвердьте пароль:</label>
+    <input type="password" name="confirm_password" id="confirm_password" required oninput="clearErrorMessages()">
+
+    {% if form_errors.get('password') %}
+        <p class="error">{{ form_errors['password'] }}</p>
+    {% endif %}
+    <button type="submit" class="btn">Зберегти</button>
+</form>
+       <!-- Статистика -->
+        <section class="stats">
+            <h2>Статистика запитів</h2>
+            <div class="stats">
+    {% if stats['successful_queries'] == 0 and stats['failed_queries'] == 0 %}
+        <p id="no-stats-message">Статистика запитів недоступна.</p>
+    {% else %}
+        <canvas id="queryStatsChart"></canvas>
+    {% endif %}
+</div>
+        </section>
+
+    </div>
+</body>
+</html>

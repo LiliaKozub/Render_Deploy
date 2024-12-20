@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Історія запитів</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            color: white; /* Текст білим за замовчуванням */
+            cursor: pointer; /* Додаємо вказівник миші для заголовків */
+        }
+        table th {
+            background-color: #007BFF;
+        }
+        tr:nth-child(even) {
+            background-color: #333;
+        }
+        tr:hover {
+            background-color: #007BFF; /* Підсвітлення фону при наведенні */
+        }
+        tr:hover td {
+            color: black; /* Текст стає чорним при наведенні на рядок */
+        }
+        .status-success {
+            color: green;
+        }
+        .status-fail {
+            color: red;
+        }
+        .status-pending {
+            color: orange;
+        }
+
+        .sort-indicator {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        .asc::after {
+            content: " ↑"; /* Стрілка вгору для сортування за зростанням */
+        }
+
+        .desc::after {
+            content: " ↓"; /* Стрілка вниз для сортування за спаданням */
+        }
+    </style>
+</head>
+<body>
+<div class="menu-icon">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="expanded-menu">
+    <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
+        <i class="fa fa-home"></i>
+    </a>
+    <a href="#" class="menu-item" data-tooltip="Інструкції">
+        <i class="fa fa-book"></i>
+    </a>
+    <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
+        <i class="fa fa-database"></i>
+    </a>
+    {% if 'user_id' in session %}
+    <a href="{{ url_for('query_history') }}" class="menu-item" data-tooltip="Історія">
+        <i class="fa fa-history"></i>
+    </a>
+    <a href="{{ url_for('account_settings') }}" class="menu-item" data-tooltip="Особистий кабінет">
+        <i class="fa fa-user"></i>
+    </a>
+    {% endif %}
+</div>
+
+<div class="container">
+    <h1>Історія SQL-запитів</h1>
+    <table id="queryTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">SQL Запит <span id="sortIndicator0" class="sort-indicator"></span></th>
+                <th onclick="sortTable(1)">Результат <span id="sortIndicator1" class="sort-indicator"></span></th>
+                <th onclick="sortTable(2)">Час виконання <span id="sortIndicator2" class="sort-indicator"></span></th>
+                <th onclick="sortTable(3)">Статус часу <span id="sortIndicator3" class="sort-indicator"></span></th>
+                <th onclick="sortTable(4)">Дата <span id="sortIndicator4" class="sort-indicator"></span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for query in history %}
+            <tr>
+                <td>{{ query['sql_query'] }}</td>
+                <td class="{{ 'status-success' if query['result'] == 'Успішно' else 'status-fail' }}">{{ query['result'] }}</td>
+                <td>{{ query['execution_time'] }} сек</td>
+                <td class="{{ 'status-success' if query['time_status'] == 'Нормальний' else 'status-pending' }}">{{ query['time_status'] }}</td>
+                <td>{{ query['query_date'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    var currentSortColumn = -1;
+    var currentSortDirection = 'asc';
+
+    // Функція для сортування таблиці
+    function sortTable(n) {
+        var table = document.getElementById("queryTable");
+        var rows = table.rows;
+        var switching = true;
+        var dir = currentSortDirection; // Встановлюємо поточний напрямок сортування
+        var switchCount = 0;
+
+        // Якщо ми натискаємо той самий стовпець, змінюємо напрямок сортування
+        if (currentSortColumn === n) {
+            dir = dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSortColumn = n;
+            dir = 'asc'; // Якщо новий стовпець, сортуємо за зростанням
+        }
+
+        currentSortDirection = dir; // Оновлюємо напрямок
+
+        while (switching) {
+            switching = false;
+            var rowsArray = Array.from(rows).slice(1); // Пропускаємо заголовок таблиці
+
+            for (var i = 0; i < rowsArray.length - 1; i++) {
+                var x = rowsArray[i].getElementsByTagName("TD")[n];
+                var y = rowsArray[i + 1].getElementsByTagName("TD")[n];
+
+                var shouldSwitch = false;
+
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+
+            if (shouldSwitch) {
+                rowsArray[i].parentNode.insertBefore(rowsArray[i + 1], rowsArray[i]);
+                switching = true;
+                switchCount++;
+            } else {
+                if (switchCount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+
+        // Оновлюємо індикатори напрямку сортування для заголовків
+        updateSortIndicator(n, dir);
+    }
+
+    function updateSortIndicator(columnIndex, direction) {
+        // Видаляємо всі попередні індикатори
+        var indicators = document.getElementsByClassName('sort-indicator');
+        for (var i = 0; i < indicators.length; i++) {
+            indicators[i].classList.remove('asc', 'desc');
+        }
+
+        // Додаємо індикатор для вибраного стовпця
+        var indicator = document.getElementById('sortIndicator' + columnIndex);
+        if (direction === 'asc') {
+            indicator.classList.add('asc');
+        } else {
+            indicator.classList.add('desc');
+        }
+    }
+
+    <script>
+        const menuIcon = document.querySelector('.menu-icon');
+const expandedMenu = document.querySelector('.expanded-menu');
+
+// Показуємо меню при наведенні
+menuIcon.addEventListener('mouseenter', () => {
+    expandedMenu.classList.add('show');
+});
+
+// Ховаємо меню при виході мишки
+expandedMenu.addEventListener('mouseleave', () => {
+    expandedMenu.classList.remove('show');
+});
+
+document.querySelectorAll('input[name="inputMethod"]').forEach((radio) => {
+    radio.addEventListener('change', (e) => {
+        const uploadStep = document.getElementById('uploadStep');
+        const manualStep = document.getElementById('manualStep');
+
+        if (e.target.value === 'file') {
+            uploadStep.classList.add('active');
+            manualStep.classList.remove('active');
+        } else {
+            uploadStep.classList.remove('active');
+            manualStep.classList.add('active');
+        }
+    });
+});
+
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+
+fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+        fileName.textContent = fileInput.files[0].name;
+    } else {
+        fileName.textContent = "Файл не вибрано";
+    }
+});
+
+    </script>
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="uk">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Перевірка SQL Запиту</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--    &lt;!&ndash; DataTables CSS &ndash;&gt;-->
+<!--    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">-->
+<!--</head>-->
+<!--<body>-->
+
+<!--    &lt;!&ndash; Іконка для бокової панелі &ndash;&gt;-->
+<!--    <div class="sidebar-icon" onclick="toggleSidebar()">-->
+<!--        &#9776; &lt;!&ndash; Символ гамбургер-меню &ndash;&gt;-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Бокова панель &ndash;&gt;-->
+<!--    <div class="sidebar">-->
+<!--        <h2 style="color: white; font-size: 24px;">Меню</h2>-->
+<!--        <a href="{{ url_for('main') }}">Головна сторінка</a>  &lt;!&ndash; Посилання на головну сторінку &ndash;&gt;-->
+<!--        <a href="{{ url_for('index') }}">Перевірка SQL запиту</a>-->
+<!--        <a href="#">Крок 2: Введення таблиць</a>-->
+<!--        <a href="#">Крок 3: Перевірка запиту</a>-->
+<!--        <a href="#">Почати заново</a>-->
+<!--    </div>-->
+
+<!--    <div class="container">-->
+<!--        <h1>Перевірка SQL Запиту</h1>-->
+
+<!--        &lt;!&ndash; Крок 1: Вибір способу введення даних &ndash;&gt;-->
+<!--        <div id="step1">-->
+<!--            <h2>Крок 1: Вибір способу введення даних</h2>-->
+<!--            <label>-->
+<!--                <input type="radio" name="inputMethod" value="file" id="fileOption" checked>-->
+<!--                Завантажити дані з файлу-->
+<!--            </label>-->
+<!--            <label>-->
+<!--                <input type="radio" name="inputMethod" value="manual" id="manualOption">-->
+<!--                Ввести дані вручну-->
+<!--            </label>-->
+
+<!--            &lt;!&ndash; Крок 1: Завантажити файл JSON з даними таблиць &ndash;&gt;-->
+<!--            <div id="uploadStep" style="display: block;">-->
+<!--                <h3>Завантажити файл JSON з даними таблиць</h3>-->
+<!--                <form id="uploadForm" enctype="multipart/form-data">-->
+<!--                    <input type="file" id="fileInput" accept=".json" required>-->
+<!--                    <button type="submit">Завантажити файл</button>-->
+<!--                </form>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; Крок 1: Ввести таблиці вручну &ndash;&gt;-->
+<!--            <div id="manualStep" style="display: none;">-->
+<!--                <h3>Введіть кількість таблиць</h3>-->
+<!--                <form id="tableCountForm">-->
+<!--                    <input type="number" id="tableCount" placeholder="Кількість таблиць" min="1" required>-->
+<!--                    <button type="submit">Далі</button>-->
+<!--                </form>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Крок 2: Введення інформації про таблиці &ndash;&gt;-->
+<!--        <div id="step2" style="display: none;">-->
+<!--            <h2>Крок 2: Введіть назви таблиць та їх стовпці</h2>-->
+<!--            <form id="tableDetailsForm"></form>-->
+<!--            <button type="button" id="createTablesBtn">Створити таблиці</button>-->
+<!--            <button type="button" id="backToStep1">Назад</button>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Крок 3: Перевірка SQL-запитів &ndash;&gt;-->
+<!--        <div id="step3" style="display: none;">-->
+<!--            <h2>Крок 3: Введіть SQL-запит</h2>-->
+<!--            <form id="sqlForm">-->
+<!--                <textarea name="sql_query" placeholder="Введіть SQL-запит" required></textarea>-->
+<!--                <button type="submit">Перевірити</button>-->
+<!--            </form>-->
+<!--            <button type="button" id="backToStep2">Назад</button>-->
+<!--            <button type="button" id="resetQueryBtn">Скинути запит</button>-->
+<!--            <button type="button" id="resetAppBtn">Почати заново</button>-->
+<!--            <button type="button" id="optimizationTipsBtn">Отримати підказки щодо оптимізації</button> &lt;!&ndash; Кнопка для підказок &ndash;&gt;-->
+<!--            <div id="result"></div>-->
+<!--            <div id="optimizationTips" style="display: none;"></div> &lt;!&ndash; Блок для підказок &ndash;&gt;-->
+<!--            <h2>Структура таблиці</h2>-->
+<!--                <select id="tableSelect">-->
+<!--                    <option value="users">users</option>-->
+<!--                    <option value="queries">queries</option>-->
+<!--                </select>-->
+<!--                <button id="viewStructureBtn">Переглянути структуру</button>-->
+
+<!--                <table id="tableStructure" class="display">-->
+<!--                    <thead>-->
+<!--                        <tr>-->
+<!--                            <th>#</th>-->
+<!--                            <th>Ім'я стовпця</th>-->
+<!--                            <th>Тип даних</th>-->
+<!--                            <th>NOT NULL</th>-->
+<!--                            <th>Значення за замовчуванням</th>-->
+<!--                            <th>Первинний ключ</th>-->
+<!--                        </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody></tbody>-->
+<!--                </table>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--&lt;!&ndash; Підключення JavaScript файлу &ndash;&gt;-->
+<!--    <script src="{{ url_for('static', filename='js/script.js') }}"></script>-->
+<!--    &lt;!&ndash; jQuery та DataTables.js &ndash;&gt;-->
+<!--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+<!--    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Головна сторінка - Веб-сервіс для перевірки SQL-запитів</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+    background-color: #202124; /* Трохи світліший темний фон */
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 40px 20px;
+    text-align: center;
+    background: #2b2f33;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+
+header h1 {
+    font-size: 36px;
+    color: #f4e04d;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+section.intro p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #e8e8e8;
+}
+
+section.selection h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #f4e04d;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn {
+    text-decoration: none;
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #ffffff;
+    background: linear-gradient(90deg, #34c759, #28a745);
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg, #28a745, #20a345);
+}
+
+footer p {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #888;
+}
+
+    </style>
+</head>
+<body>
+    <!-- Іконка меню -->
+    <div class="menu-icon">
+    <i class="fa fa-bars"></i>
+</div>
+
+<div class="expanded-menu">
+    <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
+        <i class="fa fa-home"></i>
+    </a>
+    <a href="#" class="menu-item" data-tooltip="Інструкції">
+        <i class="fa fa-book"></i>
+    </a>
+    <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
+        <i class="fa fa-database"></i>
+    </a>
+    {% if 'user_id' in session %}
+    <a href="{{ url_for('query_history') }}" class="menu-item" data-tooltip="Історія">
+        <i class="fa fa-history"></i>
+    </a>
+    <a href="{{ url_for('account_settings') }}" class="menu-item" data-tooltip="Особистий кабінет">
+        <i class="fa fa-user"></i>
+    </a>
+    {% endif %}
+</div>
+
+    <!-- Основна частина сторінки -->
+    <div class="container">
+        <header>
+            <h1>Веб-сервіс для перевірки SQL-запитів</h1>
+        </header>
+
+        <section class="intro">
+            <p>
+                Ласкаво просимо до веб-сервісу для перевірки SQL-запитів! Цей сервіс допоможе вам перевірити синтаксис SQL-запитів та переконатися в їхній коректності перед виконанням у вашій базі даних.
+            </p>
+        </section>
+
+        <section class="selection">
+            <h2>Оберіть, як хочете почати перевірку запиту:</h2>
+            <div class="btn-container">
+                <!-- Кнопки для вибору способу перевірки -->
+                <a href="{{ url_for('main') }}" class="btn">Без авторизації</a>
+                <a href="{{ url_for('login') }}" class="btn">З авторизацією</a>
+            </div>
+        </section>
+
+        <footer>
+            <p>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Підключення JavaScript файлу -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const menuIcon = document.querySelector('.menu-icon');
+const expandedMenu = document.querySelector('.expanded-menu');
+
+// Показуємо меню при наведенні
+menuIcon.addEventListener('mouseenter', () => {
+    expandedMenu.classList.add('show');
+});
+
+// Ховаємо меню при виході мишки
+expandedMenu.addEventListener('mouseleave', () => {
+    expandedMenu.classList.remove('show');
+});
+
+document.querySelectorAll('input[name="inputMethod"]').forEach((radio) => {
+    radio.addEventListener('change', (e) => {
+        const uploadStep = document.getElementById('uploadStep');
+        const manualStep = document.getElementById('manualStep');
+
+        if (e.target.value === 'file') {
+            uploadStep.classList.add('active');
+            manualStep.classList.remove('active');
+        } else {
+            uploadStep.classList.remove('active');
+            manualStep.classList.add('active');
+        }
+    });
+});
+
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+
+fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+        fileName.textContent = fileInput.files[0].name;
+    } else {
+        fileName.textContent = "Файл не вибрано";
+    }
+});
+
+    </script>
+</body>
+</html>
