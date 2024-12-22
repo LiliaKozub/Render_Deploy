@@ -37,9 +37,6 @@
         const failedQueries = {{ stats['failed_queries'] }};
 
         // Побудова діаграми
-        {% if successfulQueries == 0 and failedQueries == 0 %}
-        <p id="no-stats-message">Статистика запитів недоступна.</p>
-{% else %}
         const ctx = document.getElementById('queryStatsChart').getContext('2d');
         new Chart(ctx, {
             type: 'pie',
@@ -59,7 +56,6 @@
                 },
             },
         });
-        {% endif %}
     };
 
     const menuIcon = document.querySelector('.menu-icon');
@@ -84,6 +80,7 @@ expandedMenu.addEventListener('mouseleave', () => {
     border-radius: 15px;
     padding: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    align-items: center;
 }
 
 h1 {
@@ -157,13 +154,12 @@ input:focus {
 }
 
 .stats h2 {
-    font-size: 1.5rem; /* Зменшений розмір заголовка статистики */
+    font-size: 1.5rem;
     margin-bottom: 10px;
 }
 
-/* Зменшення розміру діаграми */
 canvas {
-    max-width: 50%; /* Зменшений розмір діаграми */
+    max-width: 50%;
     height: auto;
     margin: 0 auto;
     display: block; /* Центрування */
@@ -182,7 +178,7 @@ canvas {
     <a href="{{ url_for('index') }}" class="menu-item" data-tooltip="Головна">
         <i class="fa fa-home"></i>
     </a>
-    <a href="#" class="menu-item" data-tooltip="Інструкції">
+    <a href="{{ url_for('instructions') }}" class="menu-item" data-tooltip="Інструкції">
         <i class="fa fa-book"></i>
     </a>
     <a href="{{ url_for('main') }}" class="menu-item" data-tooltip="Перевірка SQL">
@@ -239,11 +235,7 @@ canvas {
         <section class="stats">
             <h2>Статистика запитів</h2>
             <div class="stats">
-    {% if stats['successful_queries'] == 0 and stats['failed_queries'] == 0 %}
-        <p id="no-stats-message">Статистика запитів недоступна.</p>
-    {% else %}
         <canvas id="queryStatsChart"></canvas>
-    {% endif %}
 </div>
         </section>
 
