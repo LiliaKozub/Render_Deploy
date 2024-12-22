@@ -11,13 +11,12 @@ app = Flask(__name__)
 # Конфігурація додатка
 DATABASE_SQL = 'database.db'  # Для перевірки SQL-запитів
 DATABASE_USERS = 'users.db'   # Для збереження даних користувачів
-app.secret_key = 'your_secret_key'  # Заміни на власний ключ
 
 
 # Функція для отримання з'єднання з базою даних
 def get_db_connection(database):
     conn = sqlite3.connect(database)
-    conn.row_factory = sqlite3.Row  # Додаємо цю строку
+    conn.row_factory = sqlite3.Row
     return conn
 
 
@@ -257,9 +256,6 @@ create_query_history_db()
 def check_sql():
     sql_query = request.form['sql_query']
     user_id = session.get('user_id')  # Отримуємо user_id із сесії, якщо є
-
-    if not user_id:
-        return jsonify({"valid": False, "message": "Користувач не авторизований."})
 
     start_time = time.time()
     execution_time = 0
@@ -759,6 +755,16 @@ def change_password():
 
     flash('Пароль успішно змінено.', 'success')
     return redirect(url_for('account_settings'))
+
+@app.route('/reset_app', methods=['POST'])
+def reset_app():
+    try:
+        clear_database()  # Викликаємо функцію очищення бази даних
+        return jsonify({"success": True, "message": "База даних успішно очищена!"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
 
 if __name__ == '__main__':
     clear_database()
