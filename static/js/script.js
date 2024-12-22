@@ -89,7 +89,17 @@ function generateColumnHTML(tableIndex, columnIndex, column = {}) {
                 <input type="checkbox" name="column_uniqueKey_${tableIndex}_${columnIndex}" ${uniqueKey ? 'checked' : ''}>
                 Унікальний
             </label>
-            <input type="text" name="column_foreignKey_${tableIndex}_${columnIndex}" placeholder="Зовнішній ключ (таблиця.стовпець)" value="${foreignKey}">
+            <div class="foreign-key-container">
+    <input
+        type="text"
+        name="column_foreignKey_${tableIndex}_${columnIndex}"
+        placeholder="FK"
+        value="${foreignKey}"
+        class="foreign-key-input"
+        onfocus="showTooltip(this)"
+        onblur="hideTooltip(this)">
+    <div class="tooltip">Формат: Назва таблиці (назва стовпця)</div>
+</div>
             <div class="column-actions">
                 <button type="button" class="remove-column-btn" onclick="removeColumn(${tableIndex}, ${columnIndex})">
                     <i class="fas fa-trash"></i>
@@ -298,8 +308,22 @@ document.getElementById('createTablesBtn').addEventListener('click', async funct
         });
 
         // Початок роботи знову
-        document.getElementById('resetAppBtn').addEventListener('click', function () {
-            location.reload();  // перезавантажуємо сторінку для початку процесу знову
+        document.getElementById('resetAppBtn').addEventListener('click', async function () {
+            const response = await fetch('/reset_app', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Показуємо повідомлення про успіх
+                location.reload();     // Перезавантажуємо сторінку
+            } else {
+                alert("Помилка: " + result.message); // Показуємо повідомлення про помилку
+            }
         });
 
         function toggleSidebar() {
@@ -370,6 +394,55 @@ document.getElementById('createTablesBtn').addEventListener('click', async funct
                 tableBody.innerHTML += newRow;
             });
         });
+
+        window.addEventListener('load', async function () {
+    try {
+        const response = await fetch('/reset_db', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error("Помилка очищення бази даних: ", result.message);
+        } else {
+            console.log(result.message); // Лог для підтвердження
+        }
+    } catch (error) {
+        console.error("Не вдалося очистити базу даних: ", error);
+    }
+});
+
+function showTooltip(inputElement) {
+    const tooltip = inputElement.nextElementSibling; // Знаходимо наступний елемент (підказку)
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+    tooltip.style.transform = 'translateX(-50%) translateY(-20px)'; // Показуємо над полем
+}
+
+function hideTooltip(inputElement) {
+    const tooltip = inputElement.nextElementSibling;
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translateX(-50%) translateY(-10px)'; // Ховаємо назад
+}
+
+// Знаходимо поле введення SQL-запиту
+const sqlQueryField = document.querySelector('textarea[name="sql_query"]');
+
+// Знаходимо ділянку з підказками
+const tipsDiv = document.getElementById('optimizationTips');
+
+// Додаємо обробник події для приховування ділянки з підказками
+sqlQueryField.addEventListener('input', () => {
+    tipsDiv.style.display = 'none'; // Ховаємо ділянку
+});
+
+
+
 
 
 
